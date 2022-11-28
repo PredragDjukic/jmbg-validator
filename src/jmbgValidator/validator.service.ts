@@ -2,20 +2,29 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { JmbgDto } from "./dtos/jmbg.dto";
 import { jmbgLength, regions } from "../utils/constants";
 import { DatesService } from "../dates/dates.service";
+import { GenderAndNumberDto } from "./dtos/genderAndNumber.dto";
+import { PersonDto } from "./dtos/person.dto";
 
 @Injectable()
 export class ValidatorService {
   constructor(private dateService: DatesService) { }
 
-  validate(dto: JmbgDto): string {
+  validate(dto: JmbgDto): PersonDto {
     this.checkJmbgLength(dto.jmbg);
     this.isOnlyDigits(dto.jmbg);
-    this.dateService.validateDate(dto.jmbg);
-    this.validateRegion(dto.jmbg);
-    this.validateGenderAndSerialNum(dto.jmbg);
+
+    const date: string = this.dateService.validateAndFetchDate(dto.jmbg);
+    const region: string = this.validateRegion(dto.jmbg);
+    const genderAndNumber: GenderAndNumberDto = this.validateGenderAndSerialNum(dto.jmbg);
+
     this.calculateControlNumber(dto.jmbg);
 
-    return 'Jmbg is valid';
+    return {
+      dateOfBirth: date,
+      region: region,
+      gender: genderAndNumber.gender,
+      serialNumber: genderAndNumber.serialNumber
+    }
   }
 
   private checkJmbgLength(value: string): void {
@@ -30,19 +39,33 @@ export class ValidatorService {
       throw new HttpException("Jmbg content is not valid", HttpStatus.BAD_REQUEST);
   }
 
-  private validateRegion(value: string): void {
+  private validateRegion(value: string): string {
     const jmbgRegion = value.substring(7, 9);
     const existingRegion = regions.get(jmbgRegion);
 
     if(existingRegion == undefined)
       throw new HttpException("Region is not valid", HttpStatus.BAD_REQUEST);
+
+    return existingRegion;
   }
 
-  private validateGenderAndSerialNum(value: string): void {
-    const genderAndNumber = value.substring(9, 12);
+  private validateGenderAndSerialNum(value: string): GenderAndNumberDto {
+    const genderAndNumber = Number(value.substring(9, 12));
 
-    if(Number(genderAndNumber) == 0)
+    if(genderAndNumber == 0)
       throw new HttpException("Gender and serial number are not valid", HttpStatus.BAD_REQUEST)
+
+    if(genderAndNumber >= 500) {
+      return {
+        gender: "Female",
+        serialNumber: (genderAndNumber - 500) + 1
+      };
+    }
+
+    return {
+      gender: "Male",
+      serialNumber: genderAndNumber + 1
+    };
   }
 
   private calculateControlNumber(value: string): void {

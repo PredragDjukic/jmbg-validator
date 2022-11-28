@@ -2,21 +2,16 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 
 @Injectable()
 export class DatesService {
-  validateDate(jmbg: string): void {
-    if(this.isDateValid(jmbg) == false)
-      throw new HttpException("JMBG Date is not valid", HttpStatus.BAD_REQUEST);
-  }
-
-  private isDateValid(jmbg: string): boolean {
+  validateAndFetchDate(jmbg: string): string {
     const [day, month, year] = this.fetchDatePartsFromJMBG(jmbg);
 
     const date = new Date(year, month -1, day, 12);
 
     if (date.getFullYear() == year && date.getMonth() + 1 == month && date.getDate() == day) {
-      return true;
+      return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
     }
 
-    return false;
+    throw new HttpException("JMBG Date is not valid", HttpStatus.BAD_REQUEST);
   }
 
   private fetchDatePartsFromJMBG(jmbg: string) {
