@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ValidatorModule } from "./jmbgValidator/validator.module";
+import { DatesModule } from './dates/dates.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [ValidatorModule, DatesModule]
 })
 export class AppModule {}
