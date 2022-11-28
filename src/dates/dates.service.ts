@@ -1,10 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 
 @Injectable()
 export class DatesService {
   validateDate(jmbg: string): void {
     if(this.isDateValid(jmbg) == false)
-      throw new Error("JMBG Date is not valid");
+      throw new HttpException("JMBG Date is not valid", HttpStatus.BAD_REQUEST);
   }
 
   private isDateValid(jmbg: string): boolean {

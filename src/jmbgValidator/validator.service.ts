@@ -1,12 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { JmbgDto } from "./dtos/jmbg.dto";
 import { jmbgLength } from "../utils/constants";
 import { DatesService } from "../dates/dates.service";
 
 @Injectable()
 export class ValidatorService {
-  constructor(private dateService: DatesService) {
-  }
+  constructor(private dateService: DatesService) { }
 
   validate(dto: JmbgDto): string {
     this.checkJmbgLength(dto.jmbg);
@@ -17,6 +16,6 @@ export class ValidatorService {
 
   private checkJmbgLength(value: string): void {
     if(value.length != jmbgLength)
-      throw Error("Jmbg length is not valid");
+      throw new HttpException("Jmbg length is not valid", HttpStatus.BAD_REQUEST);
   }
 }
